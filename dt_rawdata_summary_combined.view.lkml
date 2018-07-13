@@ -19,14 +19,15 @@ view: dt_rawdata_summary_combined {
        ;;
   }
 
-  parameter: date_start {
-    type: date
-  }
+
 
   parameter: date_finish {
     type: date
   }
 
+  parameter: date_start {
+    type: date
+  }
 
   measure: count {
     type: count
@@ -34,16 +35,19 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: date1 {
+    hidden: yes
     type: string
     sql: ${TABLE}.date1 ;;
   }
 
   dimension: timezone_offset {
+    hidden: yes
     type: number
     sql: ${TABLE}.timezone_offset ;;
   }
 
   dimension: auction_date {
+    hidden: yes
     type: string
     sql: ${TABLE}.auction_date ;;
   }
@@ -64,6 +68,7 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: placementid {
+    label: "Placement Id"
     type: number
     sql: ${TABLE}.placementid ;;
   }
@@ -125,129 +130,50 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: m_inventory {
+    label: "Mobile Inventory"
     type: string
     sql: ${TABLE}.m_inventory ;;
   }
 
   dimension: source {
+    label: "Domain"
     type: string
     sql: ${TABLE}.source ;;
   }
 
   dimension: position {
+    label:"Ad Position"
     type: string
     sql: ${TABLE}.position ;;
   }
 
   dimension: exchange2 {
+    label: "Exchange"
     type: string
     sql: ${TABLE}.exchange2 ;;
   }
 
-  dimension: auctions {
-    type: number
-    sql: ${TABLE}.auctions ;;
-  }
-
-  dimension: wins {
-    type: number
-    sql: ${TABLE}.wins ;;
-  }
-
-  dimension: impressions {
-    type: number
-    sql: ${TABLE}.impressions ;;
-  }
-
-  dimension: engagements {
-    type: number
-    sql: ${TABLE}.engagements ;;
-  }
-
-  dimension: clicks {
-    hidden: yes
-    type: number
-    sql: ${TABLE}.clicks ;;
-  }
-
-  measure: total_clicks {
-    type: sum
-    sql: ${clicks} ;;
-    drill_fields: [detail*,-auctions]
-  }
-
-  dimension: spend {
-    hidden: yes
-    type: number
-    sql: COALESCE(${TABLE}.spend,0) ;;
-  }
-
-  measure: total_spend {
-    type: sum
-    value_format_name: usd
-    sql: ${spend} ;;
-    drill_fields: [detail*]
-  }
-
-  measure: average_spend {
-    type: average
-    sql: ${spend} ;;
-  }
-
-  dimension: downloads {
-    type: number
-    sql: ${TABLE}.downloads ;;
-  }
-
-  measure: total_downloads {
-    type: sum
-    sql: ${downloads} ;;
-  }
-
-  measure: eCPC {
-    description: "Spend per Click"
-    type: number
-    value_format_name: usd
-    sql: 1.0*${total_spend}/NULLIF(${total_clicks},0)  ;;
-  }
-
-  dimension: registers {
-    type: number
-    sql: ${TABLE}.registers ;;
-  }
-
-  dimension: purchases {
-    type: number
-    sql: ${TABLE}.purchases ;;
-  }
 
   dimension: model {
     type: string
     sql: ${TABLE}.model ;;
   }
 
-   dimension: video_start_counter {
-    type: number
-    hidden: yes
-    sql: ${TABLE}.video_start_counter ;;
-  }
-
-  measure: total_video_started {
-    type: sum
-    sql: ${video_start_counter} ;;
-  }
 
   dimension: rate {
+    hidden: yes
     type: number
     sql: ${TABLE}.rate ;;
   }
 
   dimension: currency {
+    hidden: yes
     type: string
     sql: ${TABLE}.currency ;;
   }
 
   dimension: account_id {
+    hidden: yes
     type: number
     sql: ${TABLE}.account_id ;;
   }
@@ -258,11 +184,13 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: sub_account_id {
+    hidden: yes
     type: number
     sql: ${TABLE}.sub_account_id ;;
   }
 
   dimension: sub_account {
+    label: "Brand"
     type: string
     sql: ${TABLE}.sub_account ;;
   }
@@ -298,6 +226,7 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: banner_size {
+    label: "Creative Dimensions"
     type: string
     sql: ${TABLE}.banner_size ;;
   }
@@ -318,14 +247,11 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: origin_type {
+    hidden: yes
     type: string
     sql: ${TABLE}.origin_type ;;
   }
 
-  dimension: payout {
-    type: number
-    sql: ${TABLE}.payout ;;
-  }
 
   dimension: model_external_id {
     type: string
@@ -338,11 +264,12 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: day_ts {
+    hidden: yes
     type: number
     sql: ${TABLE}.day_ts ;;
   }
 
-  dimension_group: created {
+  dimension_group: date {
     type: time
     timeframes: [
       date,week,month
@@ -351,8 +278,241 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: hour_ts {
+    label: "Hour"
     type: number
     sql: ${TABLE}.hour_ts ;;
+  }
+  dimension: auctions {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.auctions ;;
+  }
+  measure: total_bids {
+    type: sum
+    sql: ${auctions} ;;
+    drill_fields: [detail*]
+  }
+  dimension: wins {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.wins ;;
+  }
+
+  measure: total_wins {
+    type: sum
+
+    sql: ${wins} ;;
+    drill_fields: [detail*]
+  }
+  measure: Win_Rate {
+    description: "Persentage of bids resulted in wins"
+    type: number
+    value_format_name: percent_2
+    sql: 1.0*${total_wins}/NULLIF(${total_bids},0)  ;;
+  }
+  measure: eCPM {
+    description: "Effective Cost of thousand Wins"
+    type: number
+    value_format_name: usd
+    sql: 1000.0*${total_net_spend}/NULLIF(${total_wins},0)  ;;
+  }
+  dimension: impressions {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.impressions ;;
+  }
+
+  measure: total_impressions {
+    type: sum
+
+    sql: ${impressions} ;;
+    drill_fields: [detail*]
+  }
+  measure: Render_Rate {
+    description: "Percentage of wins resulted in impressions"
+    type: number
+    value_format_name: percent_2
+    sql: 1.0*${total_impressions}/NULLIF(${total_wins},0)  ;;
+  }
+
+  dimension: engagements {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.engagements ;;
+  }
+
+  measure: total_engagements {
+    type: sum
+
+    sql: ${engagements} ;;
+    drill_fields: [detail*]
+  }
+  dimension: clicks {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.clicks ;;
+  }
+
+  measure: total_clicks {
+    type: sum
+    sql: ${clicks} ;;
+    drill_fields: [detail*,-auctions]
+  }
+  measure: eCPC {
+    description: "Spend per Click"
+    type: number
+    value_format_name: usd
+    sql: 1.0*${total_net_spend}/NULLIF(${total_clicks},0)  ;;
+  }
+  measure: CTR {
+    description: "Click trough Rate"
+    type: number
+    value_format_name: percent_2
+    sql: 1.0*${total_clicks}/NULLIF(${total_impressions},0)  ;;
+  }
+  dimension: spend {
+    hidden: yes
+    type: number
+    sql: COALESCE(${TABLE}.spend,0) ;;
+  }
+
+  measure: total_net_spend {
+    type: sum
+    value_format_name: usd
+    sql: ${spend} ;;
+    drill_fields: [detail*]
+  }
+
+
+  measure: total_spend {
+    type: sum
+    value_format_name: usd
+    sql: ${spend}*(1+cast(coalesce(${customer_fee},0) as double)/100) ;;
+    drill_fields: [detail*]
+  }
+
+
+  dimension: downloads {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.downloads ;;
+  }
+
+  measure: total_downloads {
+    type: sum
+    sql: ${downloads} ;;
+    drill_fields: [detail*]
+  }
+  measure: CR {
+    description: "Conversion Rate"
+    type: number
+    value_format_name: percent_3
+    sql: 1.0*${total_downloads}/NULLIF(${total_clicks},0)  ;;
+  }
+  measure: eCPI {
+    description: "Cost of Download"
+    type: number
+    value_format_name: usd
+    sql: 1.0*${total_net_spend}/NULLIF(${total_downloads},0)  ;;
+  }
+
+  dimension: registers {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.registers ;;
+  }
+  measure: total_registers {
+    type: sum
+    sql: ${registers} ;;
+    drill_fields: [detail*]
+  }
+
+
+  dimension: purchases {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.purchases ;;
+  }
+  measure: total_buys {
+    type: sum
+    sql: ${purchases} ;;
+    drill_fields: [detail*]
+  }
+  measure: CPFT {
+    description: "Effective Cost of first Transaction (Purchase)"
+    type: number
+    value_format_name: usd
+    sql: 1.0*${total_spend}/NULLIF(${total_buys},0)  ;;
+  }
+
+  measure: eCPFT {
+    description: "Cost of first Transaction (Purchase)"
+    type: number
+    value_format_name: usd
+    sql: 1.0*${total_payout}/NULLIF(${total_buys},0)  ;;
+  }
+  dimension: video_start_counter {
+    type: number
+    hidden: yes
+    sql: ${TABLE}.video_start_counter ;;
+  }
+
+  measure: total_video_ad_starts {
+    type: sum
+    sql: ${video_start_counter} ;;
+    drill_fields: [detail*]
+  }
+  measure: VCPM {
+    description: "Cost of thousand Video Ad Starts"
+    type: number
+    value_format_name: usd
+    sql: 1000.0*${total_net_spend}/NULLIF(${total_video_ad_starts},0)  ;;
+  }
+
+  measure: fill_rate {
+    description: "Video Ad Starts per Win"
+    type: number
+    value_format_name: percent_2
+    sql: *${total_video_ad_starts}/NULLIF(${total_wins},0)  ;;
+  }
+  dimension: payout {
+    hidden: yes
+    type: number
+    sql: ${TABLE}.payout ;;
+  }
+
+  measure: total_payout {
+    type: sum
+    value_format_name: usd
+    sql: ${payout} ;;
+    drill_fields: [detail*]
+  }
+
+  measure: RPM {
+    description: "Revenue (Payout) per thousand impressions"
+    type: number
+    value_format_name: usd
+    sql: 1000.0*${total_payout}/NULLIF(${total_impressions},0) ;;
+    drill_fields: [detail*]
+  }
+
+  measure: total_profit {
+    description: "Payout - Spend"
+    type: number
+    value_format_name: usd
+    sql: (${total_payout}-${total_net_spend})  ;;
+  }
+
+  measure: ROI {
+    description: "Return on Investment"
+    type: number
+    value_format_name: percent_2
+    sql: (1.0*${total_payout}/NULLIF(${total_net_spend},0)-1)  ;;
+  }
+  measure: profit_margin {
+    type: number
+    value_format_name: percent_2
+    sql: 1.0*${total_profit}/NULLIF(${total_payout},0)  ;;
   }
 
   set: detail {
