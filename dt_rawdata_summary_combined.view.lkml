@@ -73,7 +73,7 @@ view: dt_rawdata_summary_combined {
     type: string
     sql: ${TABLE}.country ;;
     map_layer_name: countries
-
+    drill_fields: [state,city]
   }
 
   dimension: countrycode {
@@ -81,6 +81,7 @@ view: dt_rawdata_summary_combined {
     type: string
     sql: ${TABLE}.countrycode ;;
     map_layer_name: countries
+    drill_fields: [state,city]
   }
 
   dimension: city {
@@ -99,6 +100,7 @@ view: dt_rawdata_summary_combined {
     group_label: "Location"
     type: string
     sql: ${TABLE}.state ;;
+    drill_fields: [city]
   }
 
   dimension: statecode {
