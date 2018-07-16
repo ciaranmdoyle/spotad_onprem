@@ -366,7 +366,7 @@ view: dt_rawdata_summary_combined {
 
   measure: total_impressions {
     type: sum
-
+    label: "Impressions"
     sql: ${impressions} ;;
     drill_fields: [detail*]
   }
