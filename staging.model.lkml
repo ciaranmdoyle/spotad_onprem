@@ -11,6 +11,7 @@ persist_with: cahcing_policy
 
 
 explore: dt_rawdata_summary_combined {
+
   persist_for: "24 hour"
   always_filter: {
     filters: {
@@ -26,6 +27,15 @@ explore: dt_rawdata_summary_combined {
 
 explore: rawdata_summary_cm_orc_cn {
   group_label: "Daily Summary Reports"
+  join: rt_rbo_placements {
+    type: left_outer
+    sql_on: ${rawdata_summary_cm_orc_cn.campaign_id} = ${rt_rbo_placements.campaign_id}
+    AND ${rawdata_summary_cm_orc_cn.placementid} = ${rt_rbo_placements.placement_id}
+    ;;
+    relationship: many_to_one
+  }
+
+
   #join: rawdata_orc {
   #  type: left_outer
   #  sql_on: ${rawdata_orc.actualwinprice}=${rawdata_orc.ad_context} ;;

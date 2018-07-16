@@ -242,6 +242,15 @@ view: rawdata_summary_cm_orc_cn {
   measure: average_spend {
     type: average
     sql: ${spend} ;;
+#     html:
+#     {% if value > 0 %}
+#         <font color="#42a338 ">{{ rendered_value }} good</font>
+#       {% elsif value > 1 %}
+#         <font color="#ffb92e ">{{ rendered_value }} ok</font>
+#       {% else %}
+#         <font color="#fa4444 ">{{ rendered_value }} bad</font>
+#       {% endif %}
+#     ;;
   }
 
   dimension: state {

@@ -9,6 +9,7 @@ view: dt_rawdata_summary_combined {
       WHERE
       day_ts >= CAST(DATE_FORMAT(DATE({% parameter date_start %}),'%Y%m%d') AS INTEGER)
       AND day_ts <= CAST(DATE_FORMAT(DATE({% parameter date_finish %}),'%Y%m%d') AS INTEGER)
+
       UNION ALL
       SELECT *
       FROM
@@ -16,10 +17,50 @@ view: dt_rawdata_summary_combined {
       WHERE
       day_ts >= CAST(DATE_FORMAT(DATE({% parameter date_start %}),'%Y%m%d') AS INTEGER)
       AND day_ts <= CAST(DATE_FORMAT(DATE({% parameter date_finish %}),'%Y%m%d') AS INTEGER)
+
        ;;
+#       --{% if timeframe.value = "Monthly" %}
+#       --day_ts >= CAST(DATE_FORMAT(DATE(DATE_ADD('month',-1,current_date)),'%Y%m%d') AS INTEGER)
+#       --{% else if timeframe.value = "Weekly" %}
+#       --day_ts >= CAST(DATE_FORMAT(DATE(DATE_ADD('week',-1,current_date)),'%Y%m%d') AS INTEGER)
+#       --{% else %}
+#       --day_ts >= CAST(DATE_FORMAT(DATE(DATE_ADD('day',-1,current_date)),'%Y%m%d') AS INTEGER)
+#       --{% endif %}
   }
 
+  parameter: timeframe {
+    default_value: "Daily"
+    allowed_value: {
+      value: "Daily"
+    }
+    allowed_value: {
+      value: "Weekly"
+    }
+    allowed_value: {
+      value: "Monthly"
+    }
+  }
 
+  parameter: date_part {
+    type: unquoted
+    allowed_value: {
+      label: "Years"
+      value: "DAYOFYEAR"
+    }
+    allowed_value: {
+      label: "Weeks"
+      value: "DAYOFWEEK"
+    }
+    allowed_value: {
+      label: "Months"
+      value: "DAYOFMONTH"
+    }
+  }
+
+  dimension: responded_dynamic_date {
+    type: date
+    sql: DATEADD(d, (-1 * {% parameter date_part %}(${TABLE}.date_field) + 1), ${TABLE}.date_field) ;;
+  }
 
   parameter: date_finish {
     type: date
@@ -179,6 +220,7 @@ view: dt_rawdata_summary_combined {
   }
 
   dimension: account_name {
+    view_label: "Accounts"
     type: string
     sql: ${TABLE}.account_name ;;
   }
@@ -357,6 +399,11 @@ view: dt_rawdata_summary_combined {
     type: sum
     sql: ${clicks} ;;
     drill_fields: [detail*,-auctions]
+    link: {
+      label: "Monthly Trend"
+      url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/1"
+      icon_url: "http://www.looker.com/favicon.ico"
+    }
   }
   measure: eCPC {
     description: "Spend per Click"
@@ -401,7 +448,12 @@ view: dt_rawdata_summary_combined {
   measure: total_downloads {
     type: sum
     sql: ${downloads} ;;
-    drill_fields: [detail*]
+    drill_fields: [account_name,total_net_spend]
+    link: {
+      label: "Monthly Trend"
+      url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/2"
+      icon_url: "http://www.looker.com/favicon.ico"
+    }
   }
   measure: CR {
     description: "Conversion Rate"
@@ -438,6 +490,7 @@ view: dt_rawdata_summary_combined {
     sql: ${purchases} ;;
     drill_fields: [detail*]
   }
+
   measure: CPFT {
     description: "Effective Cost of first Transaction (Purchase)"
     type: number
@@ -451,6 +504,7 @@ view: dt_rawdata_summary_combined {
     value_format_name: usd
     sql: 1.0*${total_payout}/NULLIF(${total_buys},0)  ;;
   }
+
   dimension: video_start_counter {
     type: number
     hidden: yes
