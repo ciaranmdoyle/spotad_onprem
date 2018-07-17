@@ -435,8 +435,9 @@ view: dt_rawdata_summary_combined {
     sql: ${TABLE}.day_ts ;;
   }
 
-  dimension_group: set {
+  dimension_group: date {
     view_label:"General"
+    label: "Date"
     type: time
     timeframes: [
       date,week,month
