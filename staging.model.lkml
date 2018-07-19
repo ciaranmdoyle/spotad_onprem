@@ -15,14 +15,22 @@ explore: dt_rawdata_summary_combined {
   persist_for: "24 hour"
   always_filter: {
     filters: {
-      field: date_start
+      field: number_days_to_analyse
+      value: "30"
     }
-    filters: {
-      field: date_finish
-    }
-
   }
+#   always_filter: {
+#     filters: {
+#       field: date_start
+#     }
+#     filters: {
+#       field: date_finish
+#     }
+#
+#   }
 }
+
+explore: ad_types {}
 
 
 explore: rawdata_summary_cm_orc_cn {
@@ -34,6 +42,8 @@ explore: rawdata_summary_cm_orc_cn {
     ;;
     relationship: many_to_one
   }
+
+  sql_always_having: NOT (${engagements}  = 0) ;;
 
 
   #join: rawdata_orc {
