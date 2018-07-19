@@ -135,6 +135,12 @@ view: dt_rawdata_summary_combined {
           CASE
                 WHEN ${TABLE}.country LIKE ('%America%') THEN 'United States'
                 WHEN ${TABLE}.country LIKE ('%Korea%') THEN 'South Korea'
+                WHEN ${TABLE}.country LIKE ('%Bahamas%') THEN 'Bahamas'
+                WHEN ${TABLE}.country LIKE ('%Gambia%') THEN 'Gambia'
+                WHEN ${TABLE}.country LIKE ('%Virgin Islands, British%') THEN 'British Virgin Islands'
+                WHEN ${TABLE}.country LIKE ('%Virgin Islands, U%') THEN 'U.S. Virgin Islands'
+                WHEN ${TABLE}.country LIKE ('%Bolivia, Pl%') THEN 'Bolivia'
+
                 ELSE COALESCE(${TABLE}.country,'Other')
               END
 
