@@ -63,6 +63,7 @@ view: dt_rawdata_summary_combined {
 
     dimension: responded_dynamic_date {
       type: date
+      hidden: yes
       sql: DATEADD(d, (-1 * {% parameter date_part %}(${TABLE}.date_field) + 1), ${TABLE}.date_field) ;;
     }
 
@@ -132,8 +133,8 @@ view: dt_rawdata_summary_combined {
       drill_fields: [state,city]
       sql:
           CASE
-                WHEN ${TABLE}.country LIKE ('%america%') THEN 'United States'
-                WHEN ${TABLE}.country LIKE ('%korea%') THEN 'South Korea'
+                WHEN ${TABLE}.country LIKE ('%America%') THEN 'United States'
+                WHEN ${TABLE}.country LIKE ('%Korea%') THEN 'South Korea'
                 ELSE COALESCE(${TABLE}.country,'Other')
               END
 
@@ -468,56 +469,72 @@ view: dt_rawdata_summary_combined {
 
     parameter: measure_picker {
       type: string
-      allowed_value: { value: "Bids" }
-      allowed_value: { value: "Clicks" }
+      label: "Choose Calculated Measure"
       allowed_value: { value: "eCPC" }
       allowed_value: { value: "CPFT" }
       allowed_value: { value: "eCPM" }
       allowed_value: { value: "VCPM" }
       allowed_value: { value: "CR" }
       allowed_value: { value: "CTR" }
-      allowed_value: { value: "Downloads" }
       allowed_value: { value: "eCPI" }
-      allowed_value: { value: "Impressions" }
-      allowed_value: { value: "Payout" }
-      allowed_value: { value: "Profit" }
       allowed_value: { value: "Profit Margin" }
-      allowed_value: { value: "Purchses" }
-      allowed_value: { value: "Registers" }
       allowed_value: { value: "Render Rate" }
-      allowed_value: { value: "Spend" }
-      allowed_value: { value: "Video Ad Starts" }
-      allowed_value: { value: "Wins" }
       allowed_value: { value: "Win Rate" }
     }
 
+
     measure: cohort_values {
       type: number
-
-      sql: CASE WHEN {% parameter measure_picker %} = 'Bids' THEN ${total_bids}
-        WHEN {% parameter measure_picker %} = 'Clicks' THEN ${total_clicks}
+      label: "Calculated Measure"
+      sql: CASE
         WHEN {% parameter measure_picker %} = 'eCPC' THEN ${eCPC}
         WHEN {% parameter measure_picker %} = 'CPFT' THEN ${CPFT}
         WHEN {% parameter measure_picker %} = 'eCPM' THEN ${eCPM}
         WHEN {% parameter measure_picker %} = 'VCPM' THEN ${VCPM}
         WHEN {% parameter measure_picker %} = 'CR' THEN ${CR}
         WHEN {% parameter measure_picker %} = 'CTR' THEN ${CTR}
-        WHEN {% parameter measure_picker %} = 'Downloads' THEN ${total_downloads}
         WHEN {% parameter measure_picker %} = 'eCPI' THEN ${eCPI}
-        WHEN {% parameter measure_picker %} = 'Impressions' THEN ${total_impressions}
-        WHEN {% parameter measure_picker %} = 'Payout' THEN ${payout}
-        WHEN {% parameter measure_picker %} = 'Profit' THEN ${total_profit}
         WHEN {% parameter measure_picker %} = 'Profit Margin' THEN ${profit_margin}
-        WHEN {% parameter measure_picker %} = 'Purchses' THEN ${total_purchases}
-        WHEN {% parameter measure_picker %} = 'Registers' THEN ${total_registers}
         WHEN {% parameter measure_picker %} = 'Render Rate' THEN ${Render_Rate}
-        WHEN {% parameter measure_picker %} = 'Spend' THEN ${total_net_spend}
-        WHEN {% parameter measure_picker %} = 'Video Ad Starts' THEN ${total_video_ad_starts}
-        WHEN {% parameter measure_picker %} = 'Wins' THEN ${total_wins}
         WHEN {% parameter measure_picker %} = 'Win Rate' THEN ${Win_Rate}
         ELSE 0
       END ;;
     }
+
+  parameter: measure_picker_2 {
+    type: string
+    label: "Choose Summirised Measure"
+    allowed_value: { value: "Bids" }
+    allowed_value: { value: "Clicks" }
+    allowed_value: { value: "Downloads" }
+    allowed_value: { value: "Impressions" }
+    allowed_value: { value: "Payout" }
+    allowed_value: { value: "Profit" }
+    allowed_value: { value: "Purchses" }
+    allowed_value: { value: "Registers" }
+    allowed_value: { value: "Spend" }
+    allowed_value: { value: "Video Ad Starts" }
+    allowed_value: { value: "Wins" }
+
+  }
+  measure: cohort_values_2 {
+    type: number
+    label: "Summirised Measure"
+    sql: CASE
+        WHEN {% parameter measure_picker_2 %} = 'Bids' THEN ${total_bids}
+        WHEN {% parameter measure_picker_2 %} = 'Clicks' THEN ${total_clicks}
+        WHEN {% parameter measure_picker_2 %} = 'Downloads' THEN ${total_downloads}
+        WHEN {% parameter measure_picker_2 %} = 'Impressions' THEN ${total_impressions}
+        WHEN {% parameter measure_picker_2 %} = 'Payout' THEN ${total_payout}
+        WHEN {% parameter measure_picker_2 %} = 'Profit' THEN ${total_profit}
+        WHEN {% parameter measure_picker_2 %} = 'Purchses' THEN ${total_purchases}
+        WHEN {% parameter measure_picker_2 %} = 'Registers' THEN ${total_registers}
+        WHEN {% parameter measure_picker_2 %} = 'Spend' THEN ${total_net_spend}
+        WHEN {% parameter measure_picker_2 %} = 'Video Ad Starts' THEN ${total_video_ad_starts}
+        WHEN {% parameter measure_picker_2 %} = 'Wins' THEN ${total_wins}
+        ELSE 0
+      END ;;
+  }
 
     #--------------------MEASURES-----------------------------------------------------------------
     dimension: auctions {
@@ -644,7 +661,7 @@ view: dt_rawdata_summary_combined {
       label:  "eCPC"
       description: "Spend per Click"
       type: number
-      value_format_name: usd
+      value_format_name: decimal_2
       sql: 1.0*${total_net_spend}/NULLIF(${total_clicks},0)  ;;
       link: {
         label: "Trend Over Time"
