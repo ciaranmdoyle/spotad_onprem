@@ -460,7 +460,7 @@ view: dt_rawdata_summary_combined {
       label: "Date"
       type: time
       timeframes: [
-        date,week,month
+        date,week,month,day_of_week
       ]
       sql: CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp) ;;
     }
