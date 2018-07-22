@@ -6,7 +6,7 @@ include: "*.dashboard" # include all the dashboards
 
 # ------ CACHING POLICY ------------------------------------
 # datagroup: cahcing_policy {
-#   sql_trigger: SELECT MAX(id) FROM etl_log;;
+#   sql_trigger: SELECT CURRENT_DATE;;
 #   max_cache_age: "1 hour"
 # }
 # persist_with: cahcing_policy
@@ -14,12 +14,14 @@ include: "*.dashboard" # include all the dashboards
 persist_for: "24 hours"
 # ----------------------------------------------------------
 
+week_start_day: sunday
 
 explore: dt_rawdata_summary_combined {
+  label: "Daily Summary"
   always_filter: {
     filters: {
       field: number_days_to_analyse
-      value: "30"
+      value: "7"
     }
   }
 }
