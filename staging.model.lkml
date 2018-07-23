@@ -3,38 +3,33 @@ connection: "qubole_presto"
 include: "*.view" # include all the views
 include: "*.dashboard" # include all the dashboards
 
-datagroup: cahcing_policy {
-#   sql_trigger: SELECT MAX(id) FROM etl_log;;
-  max_cache_age: "1 hour"
-}
-persist_with: cahcing_policy
 
+# ------ CACHING POLICY ------------------------------------
+# datagroup: cahcing_policy {
+#   sql_trigger: SELECT CURRENT_DATE;;
+#   max_cache_age: "1 hour"
+# }
+# persist_with: cahcing_policy
+
+persist_for: "24 hours"
+# ----------------------------------------------------------
+
+week_start_day: sunday
 
 explore: dt_rawdata_summary_combined {
-
-  persist_for: "24 hour"
+  label: "Daily Summary"
   always_filter: {
     filters: {
       field: number_days_to_analyse
       value: "30"
     }
   }
-#   always_filter: {
-#     filters: {
-#       field: date_start
-#     }
-#     filters: {
-#       field: date_finish
-#     }
-#
-#   }
 }
-
-explore: ad_types {}
 
 
 explore: rawdata_summary_cm_orc_cn {
   group_label: "Daily Summary Reports"
+  hidden: yes
   join: rt_rbo_placements {
     type: left_outer
     sql_on: ${rawdata_summary_cm_orc_cn.campaign_id} = ${rt_rbo_placements.campaign_id}
@@ -42,21 +37,5 @@ explore: rawdata_summary_cm_orc_cn {
     ;;
     relationship: many_to_one
   }
-
   sql_always_having: NOT (${engagements}  = 0) ;;
-
-
-  #join: rawdata_orc {
-  #  type: left_outer
-  #  sql_on: ${rawdata_orc.actualwinprice}=${rawdata_orc.ad_context} ;;
-  #  relationship: many_to_one
-  #}
 }
-
-
-# explore: conversiondata_orc_stg {}
-# explore: rawdata_lose_orc_stg {}
-# explore: rawdata_orc_stg {}
-# explore: rawdata_sampling_orc {}
-# explore: rawdata_summary_cm_orc_stg {}
-# explore: rt_rbo_placements {}

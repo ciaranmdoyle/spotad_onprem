@@ -29,51 +29,60 @@ view: dt_rawdata_summary_combined {
     }
     parameter: number_days_to_analyse {
       type: number
+      default_value: "30"
+      allowed_value: {
+        label: "Day"
+        value: "1"
+      }
+      allowed_value: {
+        label: "7 Days"
+        value: "7"
+      }
+      allowed_value: {
+        label: "30 Days"
+        value: "30"
+      }
+      allowed_value: {
+        label: "60 Days"
+        value: "60"
+      }
       label: "# Days to Analyse"
     }
 
-    parameter: timeframe {
-      default_value: "Daily"
-      allowed_value: {
-        value: "Daily"
-      }
-      allowed_value: {
-        value: "Weekly"
-      }
-      allowed_value: {
-        value: "Monthly"
-      }
-    }
-
-    parameter: date_part {
-      type: unquoted
-      allowed_value: {
-        label: "Years"
-        value: "DAYOFYEAR"
-      }
-      allowed_value: {
-        label: "Weeks"
-        value: "DAYOFWEEK"
-      }
-      allowed_value: {
-        label: "Months"
-        value: "DAYOFMONTH"
-      }
-    }
-
-    dimension: responded_dynamic_date {
-      type: date
-      hidden: yes
-      sql: DATEADD(d, (-1 * {% parameter date_part %}(${TABLE}.date_field) + 1), ${TABLE}.date_field) ;;
-    }
-
-    parameter: date_finish {
-      type: date
-    }
-
-    parameter: date_start {
-      type: date
-    }
+#     parameter: timeframe {
+#       default_value: "Daily"
+#       allowed_value: {
+#         value: "Daily"
+#       }
+#       allowed_value: {
+#         value: "Weekly"
+#       }
+#       allowed_value: {
+#         value: "Monthly"
+#       }
+#     }
+#
+#     parameter: date_part {
+#       type: unquoted
+#       allowed_value: {
+#         label: "Years"
+#         value: "DAYOFYEAR"
+#       }
+#       allowed_value: {
+#         label: "Weeks"
+#         value: "DAYOFWEEK"
+#       }
+#       allowed_value: {
+#         label: "Months"
+#         value: "DAYOFMONTH"
+#       }
+#     }
+#
+#     dimension: responded_dynamic_date {
+#       type: date
+#       hidden: yes
+#       sql: DATEADD(d, (-1 * {% parameter date_part %}(${TABLE}.date_field) + 1), ${TABLE}.date_field) ;;
+#     }
 
     measure: count {
       view_label: "Other Measures"
@@ -194,7 +203,20 @@ view: dt_rawdata_summary_combined {
     dimension: mobile_os {
       view_label: "Targeting"
       type: string
-      sql: COALESCE(${TABLE}.mobile_os,'Other') ;;
+      sql:
+      CASE
+        WHEN LOWER(${TABLE}.mobile_os) = 'android' THEN 'Android'
+        WHEN LOWER(${TABLE}.mobile_os) = 'ios' THEN 'iOS'
+        ELSE 'Other'
+      END
+      ;;
+      drill_fields: [mobile_os_specific]
+    }
+
+    dimension: mobile_os_specific {
+      hidden: yes
+      type: string
+      sql:  COALESCE(${TABLE}.mobile_os,'Other') ;;
     }
 
     dimension: os_version {
@@ -385,6 +407,11 @@ view: dt_rawdata_summary_combined {
       view_label: "Identifiers"
       type: string
       sql: ${TABLE}.campaign_name ;;
+      link: {
+        label: "Campaign Performance Lookup"
+        url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/dashboards/8?Campaign%20Name={{ value }}"
+        icon_url: "http://www.google.com/s2/favicons?domain=www.spotad.co"
+      }
     }
 
     dimension: goal_type {
@@ -404,6 +431,7 @@ view: dt_rawdata_summary_combined {
       type: string
       sql: COALESCE(${TABLE}.ad_type,'Other') ;;
       drill_fields: [banner_size,position]
+
     }
 
     dimension: daily_budget {
@@ -447,7 +475,7 @@ view: dt_rawdata_summary_combined {
     dimension: model_external_id {
       view_label: "Strategy"
       type: string
-      sql: $COALESCE(${TABLE}.model_external_id,'Other') ;;
+      sql: COALESCE(${TABLE}.model_external_id,'Other') ;;
     }
 
 
@@ -462,11 +490,24 @@ view: dt_rawdata_summary_combined {
       view_label:"General"
       label: "Date"
       type: time
-      timeframes: [
-        date,day_of_week,week_of_year,month_name
-      ]
+      timeframes: [date,day_of_week,week_of_year,week,month_name,month ]
       sql: CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp) ;;
     }
+
+    dimension: date_day_of_month {
+      view_label:"General"
+      group_label: "Date Date"
+      label: "Day of Month"
+      type: number
+      sql: DAY_OF_MONTH(CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp)) ;;
+      drill_fields: []
+    }
+
+    dimension: is_latest_date{
+      type: yesno
+      sql: DAY_OF_WEEK(DATE(${date_date})) = DAY_OF_WEEK(DATE_ADD('day',-1,CURRENT_DATE)) ;;
+    }
+
 
     dimension: hour_ts {
       view_label: "General"
@@ -512,7 +553,7 @@ view: dt_rawdata_summary_combined {
 
   parameter: measure_picker_2 {
     type: string
-    label: "Choose Summirised Measure"
+    label: "Choose Summarised Measure"
     allowed_value: { value: "Bids" }
     allowed_value: { value: "Clicks" }
     allowed_value: { value: "Downloads" }
@@ -528,7 +569,7 @@ view: dt_rawdata_summary_combined {
   }
   measure: cohort_values_2 {
     type: number
-    label: "Summirised Measure"
+    label: "Summarised Measure"
     sql: CASE
         WHEN {% parameter measure_picker_2 %} = 'Bids' THEN ${total_bids}
         WHEN {% parameter measure_picker_2 %} = 'Clicks' THEN ${total_clicks}
@@ -556,7 +597,7 @@ view: dt_rawdata_summary_combined {
       label: "Bids"
       type: sum
       sql: ${auctions} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_bids]
     }
     dimension: wins {
       hidden: yes
@@ -569,13 +610,14 @@ view: dt_rawdata_summary_combined {
       label:  "Wins"
       type: sum
       sql: ${wins} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,-source,-ad_type,-campaign_id,Win_Rate]
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/22"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
+
     measure: Win_Rate {
       view_label: "Rate Measures"
       label: "Win Rate"
@@ -586,9 +628,15 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/15"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
+      }
+      link: {
+        label: "Win Rate Dash"
+        url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/dashboards/7"
+        icon_url: "http://www.google.com/s2/favicons?domain=www.spotad.co"
       }
     }
+
     measure: eCPM {
       view_label: "Cost Measures"
       label:"eCPM"
@@ -599,7 +647,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/12"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     dimension: impressions {
@@ -613,11 +661,11 @@ view: dt_rawdata_summary_combined {
       label:  "Impressions"
       type: sum
       sql: ${impressions} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_impressions]
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/19"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     measure: Render_Rate {
@@ -630,7 +678,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/14"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
 
@@ -645,7 +693,7 @@ view: dt_rawdata_summary_combined {
       label:  "Engagments"
       type: sum
       sql: ${engagements} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_engagements]
     }
     dimension: clicks {
       hidden: yes
@@ -658,12 +706,16 @@ view: dt_rawdata_summary_combined {
       label: "Clicks"
       type: sum
       sql: ${clicks} ;;
-      drill_fields: [detail*,-auctions]
-      link: {
-        label: "Trend Over Time"
-        url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/1"
-        icon_url: "http://www.looker.com/favicon.ico"
-      }
+      drill_fields: [detail*,total_clicks]
+      html:
+
+    <a href="https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/1" target="_self">
+    {{ value }}</a> ;;
+#       link: {
+#         label: "Trend Over Time"
+#         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/1"
+#         icon_url: "/images/qr-graph-line@2x.png"
+#       }
     }
     measure: eCPC {
       view_label: "Cost Measures"
@@ -675,7 +727,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/13"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     measure: CTR {
@@ -688,7 +740,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/8"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     dimension: spend {
@@ -703,11 +755,16 @@ view: dt_rawdata_summary_combined {
       type: sum
       value_format_name: usd
       sql: ${spend} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_net_spend]
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/5"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
+      }
+      link: {
+        label: "Spend Dash"
+        url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/dashboards/6"
+        icon_url: "http://www.google.com/s2/favicons?domain=www.spotad.co"
       }
     }
 
@@ -718,7 +775,12 @@ view: dt_rawdata_summary_combined {
       type: sum
       value_format_name: usd
       sql: ${spend}*(1+cast(coalesce(${customer_fee},0) as double)/100) ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_spend]
+      link: {
+        label: "Spend Dash"
+        url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/dashboards/6"
+        icon_url: "http://www.google.com/s2/favicons?domain=www.spotad.co"
+      }
     }
 
 
@@ -737,7 +799,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/2"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     measure: CR {
@@ -745,12 +807,13 @@ view: dt_rawdata_summary_combined {
       label:  "CR"
       description: "Conversion Rate"
       type: number
+      drill_fields: [detail*,CR]
       value_format_name: percent_3
       sql: 1.0*${total_downloads}/NULLIF(${total_clicks},0)  ;;
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/9"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     measure: eCPI {
@@ -763,7 +826,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/10"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
 
@@ -777,11 +840,11 @@ view: dt_rawdata_summary_combined {
       label: "Registers"
       type: sum
       sql: ${registers} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_registers]
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/17"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
 
@@ -796,11 +859,11 @@ view: dt_rawdata_summary_combined {
       label: "Purchases"
       type: sum
       sql: ${purchases} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_purchases]
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/18"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
 
@@ -814,7 +877,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/20"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
 
@@ -838,11 +901,11 @@ view: dt_rawdata_summary_combined {
       label: "Video Ad Starts"
       type: sum
       sql: ${video_start_counter} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_video_ad_starts]
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/6"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     measure: VCPM {
@@ -855,7 +918,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/21"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
 
@@ -879,11 +942,11 @@ view: dt_rawdata_summary_combined {
       type: sum
       value_format_name: usd
       sql: ${payout} ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,total_payout]
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/16"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
 
@@ -894,7 +957,7 @@ view: dt_rawdata_summary_combined {
       type: number
       value_format_name: usd
       sql: 1000.0*${total_payout}/NULLIF(${total_impressions},0) ;;
-      drill_fields: [detail*]
+      drill_fields: [detail*,RPM]
     }
 
     measure: total_profit {
@@ -903,13 +966,34 @@ view: dt_rawdata_summary_combined {
       description: "Payout - Spend"
       type: number
       value_format_name: usd
+      drill_fields: [detail*,total_profit]
       sql: (${total_payout}-${total_net_spend})  ;;
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/7"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
+
+    measure: positive_profit {
+      view_label: "Other Measures"
+      description: "Payout - Spend"
+      type: number
+      value_format_name: usd_0
+      sql: IF(${total_profit} >= 0, ${total_profit},null)  ;;
+      drill_fields: [detail*,total_profit]
+
+    }
+
+  measure: loss {
+    view_label: "Other Measures"
+    description: "Payout - Spend"
+    type: number
+    value_format_name: usd_0
+    sql: IF(${total_profit} < 0, ${total_profit},null)  ;;
+    drill_fields: [detail*,total_profit]
+
+  }
 
     measure: ROI {
       view_label: "Rate Measures"
@@ -921,7 +1005,7 @@ view: dt_rawdata_summary_combined {
       link: {
         label: "Trend Over Time"
         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/11"
-        icon_url: "http://www.looker.com/favicon.ico"
+        icon_url: "/images/qr-graph-line@2x.png"
       }
     }
     measure: profit_margin {
@@ -935,47 +1019,7 @@ view: dt_rawdata_summary_combined {
 #-------------------------------DRILLS-------------------------------------------------------
     set: detail {
       fields: [
-        vertical,
-        vertical_parent,
-        placementid,
-        country,
-        city,
-        state,
-        device_model,
-        mobile_os,
-        os_version,
-        m_inventory,
-        source,
-        position,
-        exchange2,
-        auctions,
-        wins,
-        impressions,
-        engagements,
-        clicks,
-        spend,
-        downloads,
-        registers,
-        purchases,
-        model,
-        video_start_counter,
-        account_name,
-        sub_account,
-        campaign_id,
-        campaign_name,
-        goal_type,
-        goal_value,
-        ad_type,
-        daily_budget,
-        banner_size,
-        publisher_id,
-        placement_name,
-        customer_fee,
-        payout,
-        model_external_id,
-        device_type,
-        day_ts,
-        hour_ts
+        campaign_id,campaign_name,source,ad_type
       ]
     }
   }
