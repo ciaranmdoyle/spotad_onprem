@@ -217,7 +217,9 @@ view: dt_rawdata_summary_combined {
       view_label: "Targeting"
       label: "Inventory Type"
       type: string
-      sql:if( ${TABLE}.device_type=2,'Desktop', if(${TABLE}.device_type=3,'Connected TV',${TABLE}.m_inventory)) ;;
+      sql:if( ${TABLE}.device_type=2,'Desktop', if(${TABLE}.device_type=3,'Connected TV',COALESCE(${TABLE}.m_inventory,'Other')))
+      ;;
+      drill_fields:[mobile_os]
     }
 
 
@@ -401,6 +403,7 @@ view: dt_rawdata_summary_combined {
       view_label: "Creative"
       type: string
       sql: COALESCE(${TABLE}.ad_type,'Other') ;;
+      drill_fields: [banner_size,position]
     }
 
     dimension: daily_budget {
@@ -460,7 +463,7 @@ view: dt_rawdata_summary_combined {
       label: "Date"
       type: time
       timeframes: [
-        date,week,month
+        date,day_of_week,week_of_year,month_name
       ]
       sql: CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp) ;;
     }
