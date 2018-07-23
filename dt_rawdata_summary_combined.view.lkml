@@ -29,6 +29,23 @@ view: dt_rawdata_summary_combined {
     }
     parameter: number_days_to_analyse {
       type: number
+      default_value: "30"
+      allowed_value: {
+        label: "Day"
+        value: "1"
+      }
+      allowed_value: {
+        label: "7 Days"
+        value: "7"
+      }
+      allowed_value: {
+        label: "30 Days"
+        value: "30"
+      }
+      allowed_value: {
+        label: "60 Days"
+        value: "60"
+      }
       label: "# Days to Analyse"
     }
 

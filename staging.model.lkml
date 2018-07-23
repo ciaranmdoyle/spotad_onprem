@@ -21,7 +21,7 @@ explore: dt_rawdata_summary_combined {
   always_filter: {
     filters: {
       field: number_days_to_analyse
-      value: "7"
+      value: "30"
     }
   }
 }
