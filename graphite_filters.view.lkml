@@ -67,6 +67,7 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   dimension: num_of_filtered {
     description: "The number of filtered bids"
     type: number
+    hidden: yes
     sql: ${TABLE}.num_of_filtered ;;
   }
 
