@@ -82,13 +82,14 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   dimension: level1 {
     description: "The name of level 1 filter "
     type: string
-    drill_fields:[level2,level3]
+    drill_fields:[level2,level3,campaign_id]
     sql:${TABLE}.level1 ;;
   }
 
   dimension: level2 {
     description: "The name of level 2 filter "
     type: string
+    drill_fields:[level3]
     sql:${TABLE}.level2 ;;
   }
 
