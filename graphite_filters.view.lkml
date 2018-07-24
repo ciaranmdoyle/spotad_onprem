@@ -34,27 +34,30 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
 
   # Define your dimensions and measures here, like this:
   dimension: day_ts {
-    description: "Date of the metrics"
+    description: "Date of the metrics format (yyyymmdd)"
     type: number
     sql: ${TABLE}.day_ts ;;
   }
 
 
   dimension: clone {
+    label: "SLR Instance"
     description: "SLR Instance"
     type: number
     sql: ${TABLE}.clone ;;
   }
 
   dimension: campaign_id {
-    full_suggestions: yes
+    label: "Campaign Id"
     description: "Campaign Id"
+    full_suggestions: yes
     type: number
     can_filter: yes
     sql: ${TABLE}.campaign_id ;;
   }
 
   dimension: ex {
+    label: "Exchange"
     description: "Exchange"
     type: string
     sql: ${TABLE}.ex ;;
@@ -67,6 +70,7 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   }
 
   dimension: num_of_filtered {
+    label: "Number of Filtered Bids"
     description: "The number of filtered bids"
     type: number
     hidden: yes
@@ -75,29 +79,33 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
 
   measure: total_of_filtered {
 
-    label:  "Sum filtered bids"
+    label: "Sum filtered bids"
     type: sum
     sql: ${num_of_filtered} ;;
 
   }
 
   dimension: level1 {
+    label:"Filter Level 1"
     description: "The name of level 1 filter "
     type: string
-    drill_fields:[level2,level3,campaign_id]
+    drill_fields:[level2,level3,ex]
     sql:${TABLE}.level1 ;;
   }
 
   dimension: level2 {
+    label:"Filter Level 2"
     description: "The name of level 2 filter "
     type: string
-    drill_fields:[level3]
+    drill_fields:[level3,ex]
     sql:${TABLE}.level2 ;;
   }
 
   dimension: level3 {
+    label:"Filter Level 3"
     description: "The name of level 3 filter "
     type: string
+    drill_fields:[ex]
     sql:${TABLE}.level3 ;;
   }
 }
