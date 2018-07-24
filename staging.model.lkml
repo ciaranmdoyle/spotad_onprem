@@ -31,6 +31,16 @@ explore: dt_rawdata_summary_combined {
   }
 }
 
+explore: graphite_filters {
+  label: "Graphite Filters"
+#   access_filter: {
+#     field: account_id
+#     user_attribute: customer_account
+#
+#   }
+
+
+}
 
 explore: rawdata_summary_cm_orc_cn {
   group_label: "Daily Summary Reports"
