@@ -20,7 +20,7 @@ from spotad.gc_metrics_prd
 where day_ts=CAST(DATE_FORMAT(DATE(CURRENT_DATE),'%Y%m%d') AS INTEGER)
   and metric in ('bids','intoDynamicFilters'))
 
-select day_ts, clone, campaign_id, ex,metric, filtered as num_of_filtered, level1, level2,level3
+select day_ts, clone, cast(campaign_id as string) as campaign_id, ex,metric, filtered as num_of_filtered, level1, level2,level3
 from
 (select day_ts, clone, campaign_id, ex, 'Dynamic' as metric, (avg(into_dymanic) - avg(after_dymanic))*300 as filtered
  from temp
