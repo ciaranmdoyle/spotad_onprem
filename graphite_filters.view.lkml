@@ -17,7 +17,7 @@ temp as (select day_ts, clone, campaign_id, ex,
 if(metric='bids',data_avg,null) as after_dymanic,
 if(metric='intoDynamicFilters',data_avg,null) as into_dymanic
 from spotad.gc_metrics_prd
-where day_ts=20180706
+where day_ts=CAST(DATE_FORMAT(DATE(CURRENT_DATE),'%Y%m%d') AS INTEGER)
   and metric in ('bids','intoDynamicFilters'))
 
 select day_ts, clone, campaign_id, ex,metric, filtered as num_of_filtered, level1, level2,level3
