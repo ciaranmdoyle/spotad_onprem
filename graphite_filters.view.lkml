@@ -47,8 +47,10 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   }
 
   dimension: campaign_id {
+    full_suggestions: yes
     description: "Campaign Id"
     type: number
+    can_filter: yes
     sql: ${TABLE}.campaign_id ;;
   }
 
