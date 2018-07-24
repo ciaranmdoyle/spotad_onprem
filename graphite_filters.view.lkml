@@ -43,6 +43,7 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   dimension: clone {
     label: "SLR Instance"
     description: "SLR Instance"
+    full_suggestions: yes
     type: number
     sql: ${TABLE}.clone ;;
   }
@@ -59,6 +60,7 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   dimension: ex {
     label: "Exchange"
     description: "Exchange"
+    full_suggestions: yes
     type: string
     sql: ${TABLE}.ex ;;
   }
