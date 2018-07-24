@@ -70,19 +70,28 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
     sql: ${TABLE}.num_of_filtered ;;
   }
 
-  measure: level1 {
+  measure: total_of_filtered {
+
+    label:  "Sum filtered bids"
+    type: sum
+    sql: ${num_of_filtered} ;;
+
+  }
+
+  dimension: level1 {
     description: "The name of level 1 filter "
     type: string
+    drill_fields:[level2,level3]
     sql:${TABLE}.level1 ;;
   }
 
-  measure: level2 {
+  dimension: level2 {
     description: "The name of level 2 filter "
     type: string
     sql:${TABLE}.level2 ;;
   }
 
-  measure: level3 {
+  dimension: level3 {
     description: "The name of level 3 filter "
     type: string
     sql:${TABLE}.level3 ;;
