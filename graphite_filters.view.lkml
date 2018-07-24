@@ -51,7 +51,7 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
     label: "Campaign Id"
     description: "Campaign Id"
     full_suggestions: yes
-    type: number
+    type: string
     can_filter: yes
     sql: ${TABLE}.campaign_id ;;
   }
