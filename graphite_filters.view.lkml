@@ -7,11 +7,11 @@ view: graphite_filters {
      with filters as (select 0 as priority, 'Dynamic' as filter, 'Dynamic' as level1, null as level2, null as level3
 union all
 select f.priority, f.name as filter, f.parent as level1, f.name as level2,  null as level3
-from spotad.gc_filters f where level=2
+from spotad.gc_filters f where level=2 and f.include=1
 union all
 select f.priority,f.name as filter,f1.parent as level1, f.parent as level1, f.name as level3
 from spotad.gc_filters f left join spotad.gc_filters f1 on f.parent=f1.name
-where f.level=3),
+where f.level=3 and f.include=1),
 
 temp as (select day_ts, clone, campaign_id, ex,
 if(metric='bids',data_avg,null) as after_dymanic,
