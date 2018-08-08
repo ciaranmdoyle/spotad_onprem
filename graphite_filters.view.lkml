@@ -88,7 +88,7 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   }
 
   dimension: level1 {
-    label:"Filter Level 1"
+    label:"Filter"
     description: "The name of level 1 filter "
     type: string
     drill_fields:[level2,level3,ex]
@@ -96,7 +96,7 @@ group by 1,2,3,4,5) a join filters f on a.metric=f.filter;;
   }
 
   dimension: level2 {
-    label:"Filter Level 2"
+    label:"Sub Filter"
     description: "The name of level 2 filter "
     type: string
     drill_fields:[level3,ex]
