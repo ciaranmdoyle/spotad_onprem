@@ -29,9 +29,9 @@ view: dt_rawdata_summary_combined {
     }
     parameter: number_days_to_analyse {
       type: number
-      default_value: "30"
+      default_value: "1"
       allowed_value: {
-        label: "Day"
+        label: "Last Day"
         value: "1"
       }
       allowed_value: {

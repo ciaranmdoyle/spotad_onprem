@@ -18,15 +18,15 @@ week_start_day: sunday
 
 explore: dt_rawdata_summary_combined {
   label: "Daily Summary"
-#   access_filter: {
-#     field: account_id
-#     user_attribute: customer_account
+#    access_filter: {
+#      field: account_id
+#      user_attribute: account_id
 #
-#   }
+#    }
   always_filter: {
     filters: {
       field: number_days_to_analyse
-      value: "30"
+      value: "1"
     }
   }
 }
