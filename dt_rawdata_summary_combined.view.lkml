@@ -29,21 +29,22 @@ view: dt_rawdata_summary_combined {
     }
     parameter: number_days_to_analyse {
       type: number
-      default_value: "30"
+      default_value: "1"
+
       allowed_value: {
-        label: "Day"
+        label: "Yesterday"
         value: "1"
       }
       allowed_value: {
-        label: "7 Days"
+        label: "Last 7 Days"
         value: "7"
       }
       allowed_value: {
-        label: "30 Days"
+        label: "Last 30 Days"
         value: "30"
       }
       allowed_value: {
-        label: "60 Days"
+        label: "Last 60 Days"
         value: "60"
       }
       label: "# Days to Analyse"
@@ -305,6 +306,10 @@ view: dt_rawdata_summary_combined {
         when: {
           sql: ${TABLE}.exchange2 = 'applovin' ;;
           label: "Applovin"
+        }
+        when: {
+          sql: ${TABLE}.exchange2 = 'inmobi' ;;
+          label: "InMobi"
         }
         when: {
           sql: ${TABLE}.exchange2 = 'baidu' ;;

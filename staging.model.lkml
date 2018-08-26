@@ -1,5 +1,5 @@
 connection: "qubole_presto"
-
+label: "Internal Looker Model"
 include: "*.view" # include all the views
 include: "*.dashboard" # include all the dashboards
 
@@ -26,7 +26,22 @@ explore: dt_rawdata_summary_combined {
   always_filter: {
     filters: {
       field: number_days_to_analyse
-      value: "30"
+      value: "7"
+    }
+  }
+}
+
+explore: rawdata_sampling_orc {
+  label: "Inventory Discovery"
+#   access_filter: {
+#     field: account_id
+#     user_attribute: customer_account
+#
+#   }
+  always_filter: {
+   filters: {
+      field: number_days_to_analyse
+      value: "1"
     }
   }
 }
@@ -38,8 +53,15 @@ explore: graphite_filters {
 #     user_attribute: customer_account
 #
 #   }
-
-
+}
+  explore: exchange_supply_monitoring {
+    label: "Exchange Supply Monitoring"
+  always_filter: {
+    filters: {
+      field: number_days_to_analyse
+      value: "7"
+    }
+}
 }
 
 explore: rawdata_summary_cm_orc_cn {
