@@ -42,8 +42,11 @@ view: dt_rawdata_summary_combined {
       type: number
       default_value: "1"
 
+
       allowed_value: {
+
         label: "Yesterday"
+
         value: "1"
       }
       allowed_value: {
