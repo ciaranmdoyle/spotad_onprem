@@ -344,10 +344,10 @@ view: dt_rawdata_summary_combined {
           sql: ${TABLE}.exchange2 = 'mopub' ;;
           label: "Mopub"
         }
-        when: {
-          sql: ${TABLE}.exchange2 = 'pubmatic' ;;
-          label: "Pubmatic"
-        }
+        #when: {
+        #  sql: ${TABLE}.exchange2 = 'pubmatic' ;;
+        #  label: "Pubmatic"
+      #  }
         when: {
           sql: ${TABLE}.exchange2 = 'rubicon' ;;
           label: "Rubicon"
@@ -740,10 +740,10 @@ view: dt_rawdata_summary_combined {
       type: sum
       sql: ${clicks} ;;
       drill_fields: [detail*,total_clicks]
-      html:
+     # html:
 
-    <a href="https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/1" target="_self">
-    {{ value }}</a> ;;
+  #  <a href="https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/1" target="_self">
+  #  {{ value }}</a> ;;
 #       link: {
 #         label: "Trend Over Time"
 #         url: "https://ec2-34-229-34-243.compute-1.amazonaws.com:9999/looks/1"
