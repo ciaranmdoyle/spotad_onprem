@@ -3,17 +3,27 @@ view: dt_rawdata_summary_combined {
 #   suggestions: no
   derived_table: {
     sql:
-    SELECT *
+    SELECT s.*,cs.name as serving_type
       FROM
-      hive.spotad.rawdata_summary_cm_orc_cn
+      hive.spotad.rawdata_summary_cm_orc_cn s left join cmdb.spotgames_cm.placements p
+      ON s.placementid = p.id
+      left join cmdb.spotgames_cm.creatives c
+      ON p.creative_id=c.id
+      left join cmdb.spotgames_cm.creative_serving_type cs
+      ON c.creative_serving_type_id=cs.id
       WHERE
       day_ts >= CAST(DATE_FORMAT(DATE(date_add('day',-{% parameter number_days_to_analyse %},CURRENT_DATE)),'%Y%m%d') AS INTEGER)
       AND day_ts <= CAST(DATE_FORMAT(DATE(date_add('day',-1,CURRENT_DATE)),'%Y%m%d') AS INTEGER)
 
       UNION ALL
-      SELECT *
+      SELECT  s.*,cs.name as serving_type
       FROM
-      hive.spotad.rawdata_summary_cm_orc_prd
+      hive.spotad.rawdata_summary_cm_orc_prd s left join cmdb.spotgames_cm.placements p
+      ON s.placementid = p.id
+      left join cmdb.spotgames_cm.creatives c
+      ON p.creative_id=c.id
+      left join cmdb.spotgames_cm.creative_serving_type cs
+      ON c.creative_serving_type_id=cs.id
       WHERE
       day_ts >= CAST(DATE_FORMAT(DATE(date_add('day',-{% parameter number_days_to_analyse %},CURRENT_DATE)),'%Y%m%d') AS INTEGER)
       AND day_ts <= CAST(DATE_FORMAT(DATE(date_add('day',-1,CURRENT_DATE)),'%Y%m%d') AS INTEGER)
@@ -28,6 +38,7 @@ view: dt_rawdata_summary_combined {
 #       --{% endif %}
     }
     parameter: number_days_to_analyse {
+      hidden: yes
       type: number
       default_value: "1"
 
@@ -47,6 +58,7 @@ view: dt_rawdata_summary_combined {
         label: "Last 60 Days"
         value: "60"
       }
+      view_label: ""
       label: "# Days to Analyse"
     }
 
@@ -115,6 +127,12 @@ view: dt_rawdata_summary_combined {
       type: string
       sql: ${TABLE}.datacenter ;;
     }
+  dimension: serving_type {
+    view_label: "Creative"
+    type: string
+    sql:  COALESCE(${TABLE}.serving_type,'Other') ;;
+  }
+
 
     dimension: vertical {
       view_label: "Targeting"
@@ -442,6 +460,7 @@ view: dt_rawdata_summary_combined {
     dimension: daily_budget {
       view_label: "General"
       type: number
+      description: "Use incombination with Campaign ID/Name dimensions only "
       sql: ${TABLE}.daily_budget ;;
     }
 
@@ -493,7 +512,7 @@ view: dt_rawdata_summary_combined {
 
     dimension_group: date {
       view_label:"General"
-      label: "Date"
+      #label: "Date"
       type: time
       timeframes: [date,day_of_week,week_of_year,week,month_name,month ]
       sql: CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp) ;;
@@ -509,6 +528,7 @@ view: dt_rawdata_summary_combined {
     }
 
     dimension: is_latest_date{
+      hidden: yes
       type: yesno
       sql: DAY_OF_WEEK(DATE(${date_date})) = DAY_OF_WEEK(DATE_ADD('day',-1,CURRENT_DATE)) ;;
     }
@@ -523,6 +543,7 @@ view: dt_rawdata_summary_combined {
 
 
     parameter: measure_picker {
+      hidden: yes
       type: string
       label: "Choose Calculated Measure"
       allowed_value: { value: "eCPC" }
@@ -539,6 +560,7 @@ view: dt_rawdata_summary_combined {
 
 
     measure: cohort_values {
+      hidden: yes
       type: number
       label: "Calculated Measure"
       sql: CASE
@@ -557,6 +579,7 @@ view: dt_rawdata_summary_combined {
     }
 
   parameter: measure_picker_2 {
+    hidden: yes
     type: string
     label: "Choose Summarised Measure"
     allowed_value: { value: "Bids" }
@@ -574,6 +597,7 @@ view: dt_rawdata_summary_combined {
   }
   measure: cohort_values_2 {
     type: number
+    hidden: yes
     label: "Summarised Measure"
     sql: CASE
         WHEN {% parameter measure_picker_2 %} = 'Bids' THEN ${total_bids}
@@ -598,7 +622,7 @@ view: dt_rawdata_summary_combined {
       sql: ${TABLE}.auctions ;;
     }
     measure: total_bids {
-      view_label: "Top Measures"
+      view_label: "Amounts"
       label: "Bids"
       type: sum
       sql: ${auctions} ;;
@@ -611,7 +635,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_wins {
-      view_label: "Top Measures"
+      view_label: "Amounts"
       label:  "Wins"
       type: sum
       sql: ${wins} ;;
@@ -624,7 +648,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: Win_Rate {
-      view_label: "Rate Measures"
+      view_label: "Calculated Measures"
       label: "Win Rate"
       description: "Persentage of bids resulted in wins"
       type: number
@@ -643,7 +667,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: eCPM {
-      view_label: "Cost Measures"
+      view_label: "Calculated Measures"
       label:"eCPM"
       description: "Effective Cost of thousand Wins"
       type: number
@@ -662,7 +686,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_impressions {
-      view_label: "Top Measures"
+      view_label: "Amounts"
       label:  "Impressions"
       type: sum
       sql: ${impressions} ;;
@@ -674,7 +698,7 @@ view: dt_rawdata_summary_combined {
       }
     }
     measure: Render_Rate {
-      view_label: "Rate Measures"
+      view_label: "Calculated Measures"
       label:  "Render Rate"
       description: "Percentage of wins resulted in impressions"
       type: number
@@ -694,7 +718,8 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_engagements {
-      view_label: "Other Measures"
+      view_label: "Amounts"
+      hidden: yes
       label:  "Engagments"
       type: sum
       sql: ${engagements} ;;
@@ -707,7 +732,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_clicks {
-      view_label: "Top Measures"
+      view_label: "Amounts"
       label: "Clicks"
       type: sum
       sql: ${clicks} ;;
@@ -723,7 +748,7 @@ view: dt_rawdata_summary_combined {
 #       }
     }
     measure: eCPC {
-      view_label: "Cost Measures"
+      view_label: "Calculated Measures"
       label:  "eCPC"
       description: "Spend per Click"
       type: number
@@ -736,7 +761,7 @@ view: dt_rawdata_summary_combined {
       }
     }
     measure: CTR {
-      view_label: "Rate Measures"
+      view_label: "Calculated Measures"
       label: "CTR"
       description: "Click trough Rate"
       type: number
@@ -755,7 +780,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_net_spend {
-      view_label: "Top Measures"
+      view_label: "Amounts"
       label: "Spend"
       type: sum
       value_format_name: usd
@@ -775,7 +800,7 @@ view: dt_rawdata_summary_combined {
 
 
     measure: total_spend {
-      view_label: "Other Measures"
+      view_label: "Amounts"
       label: "Total Spend"
       type: sum
       value_format_name: usd
@@ -796,7 +821,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_downloads {
-      view_label: "Top Measures"
+      view_label: "Amounts"
       label: "Downloads"
       type: sum
       sql: ${downloads} ;;
@@ -808,7 +833,7 @@ view: dt_rawdata_summary_combined {
       }
     }
     measure: CR {
-      view_label: "Rate Measures"
+      view_label: "Calculated Measures"
       label:  "CR"
       description: "Conversion Rate"
       type: number
@@ -822,7 +847,7 @@ view: dt_rawdata_summary_combined {
       }
     }
     measure: eCPI {
-      view_label: "Cost Measures"
+      view_label: "Calculated Measures"
       label: "eCPI"
       description: "Cost of Download"
       type: number
@@ -841,7 +866,7 @@ view: dt_rawdata_summary_combined {
       sql: ${TABLE}.registers ;;
     }
     measure: total_registers {
-      view_label: "Other Measures"
+      view_label: "Amounts"
       label: "Registers"
       type: sum
       sql: ${registers} ;;
@@ -860,7 +885,7 @@ view: dt_rawdata_summary_combined {
       sql: ${TABLE}.purchases ;;
     }
     measure: total_purchases {
-      view_label: "Other Measures"
+      view_label: "Amounts"
       label: "Purchases"
       type: sum
       sql: ${purchases} ;;
@@ -873,7 +898,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: CPFT {
-      view_label: "Cost Measures"
+      view_label: "Calculated Measures"
       label: "CPFT"
       description: "Effective Cost of first Transaction (Purchase)"
       type: number
@@ -887,7 +912,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: eCPFT {
-      view_label: "Cost Measures"
+      view_label: "Calculated Measures"
       label: "eCPFT"
       description: "Cost of first Transaction (Purchase)"
       type: number
@@ -902,7 +927,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_video_ad_starts {
-      view_label: "Video Measures"
+      view_label: "Amounts"
       label: "Video Ad Starts"
       type: sum
       sql: ${video_start_counter} ;;
@@ -914,7 +939,7 @@ view: dt_rawdata_summary_combined {
       }
     }
     measure: VCPM {
-      view_label: "Video Measures"
+      view_label: "Calculated Measures"
       label: "VCPM"
       description: "Cost of thousand Video Ad Starts"
       type: number
@@ -928,7 +953,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: fill_rate {
-      view_label: "Video Measures"
+      view_label: "Calculated Measures"
       label: "Fill Rate"
       description: "Video Ad Starts per Win"
       type: number
@@ -942,7 +967,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: total_payout {
-      view_label: "Other Measures"
+      view_label: "Amounts"
       label: "Payout"
       type: sum
       value_format_name: usd
@@ -956,7 +981,7 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: RPM {
-      view_label: "Video Measures"
+      view_label: "Calculated Measures"
       label: "RPM"
       description: "Revenue (Payout) per thousand impressions"
       type: number
@@ -965,8 +990,19 @@ view: dt_rawdata_summary_combined {
       drill_fields: [detail*,RPM]
     }
 
+  measure: IPM {
+    view_label: "Calculated Measures"
+    label: "IPM"
+    description: "Downloads per thousand impressions"
+    type: number
+    value_format_name: decimal_2
+    sql: 1000.0*${total_downloads}/NULLIF(${total_impressions},0) ;;
+    drill_fields: [detail*,RPM]
+  }
+
+
     measure: total_profit {
-      view_label: "Other Measures"
+      view_label: "Amounts"
       label: "Profit"
       description: "Payout - Spend"
       type: number
@@ -981,7 +1017,8 @@ view: dt_rawdata_summary_combined {
     }
 
     measure: positive_profit {
-      view_label: "Other Measures"
+      view_label: ""
+      hidden: yes
       description: "Payout - Spend"
       type: number
       value_format_name: usd_0
@@ -991,7 +1028,8 @@ view: dt_rawdata_summary_combined {
     }
 
   measure: loss {
-    view_label: "Other Measures"
+    hidden: yes
+    view_label: ""
     description: "Payout - Spend"
     type: number
     value_format_name: usd_0
@@ -1001,7 +1039,7 @@ view: dt_rawdata_summary_combined {
   }
 
     measure: ROI {
-      view_label: "Rate Measures"
+      view_label: "Calculated Measures"
       label: "ROI"
       description: "Return on Investment"
       type: number
@@ -1014,7 +1052,7 @@ view: dt_rawdata_summary_combined {
       }
     }
     measure: profit_margin {
-      view_label: "Rate Measures"
+      view_label: "Calculated Measures"
       label: "Profit Margin"
       type: number
       value_format_name: percent_2
