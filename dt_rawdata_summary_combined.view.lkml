@@ -3,7 +3,7 @@ view: dt_rawdata_summary_combined {
 #   suggestions: no
   derived_table: {
     sql:
-    SELECT s.*,cs.name as serving_type
+    SELECT s.*,cs.name as serving_type,p.creative_id as creative_id
       FROM
       hive.spotad.rawdata_summary_cm_orc_cn s left join cmdb.spotgames_cm.placements p
       ON s.placementid = p.id
@@ -16,7 +16,7 @@ view: dt_rawdata_summary_combined {
       AND day_ts <= CAST(DATE_FORMAT(DATE(date_add('day',-1,CURRENT_DATE)),'%Y%m%d') AS INTEGER)
 
       UNION ALL
-      SELECT  s.*,cs.name as serving_type
+      SELECT  s.*,cs.name as serving_type,p.creative_id as creative_id
       FROM
       hive.spotad.rawdata_summary_cm_orc_prd s left join cmdb.spotgames_cm.placements p
       ON s.placementid = p.id
@@ -64,6 +64,29 @@ view: dt_rawdata_summary_combined {
       view_label: ""
       label: "# Days to Analyse"
     }
+
+  dimension_group: date {
+    view_label:"General"
+    #label: "Date"
+    type: time
+    timeframes: [date,day_of_week,week_of_year,week,month_name,month ]
+    sql: CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp) ;;
+  }
+
+  dimension: date_day_of_month {
+    view_label:"General"
+    group_label: "Date"
+    label: "Day of Month"
+    type: number
+    sql: DAY_OF_MONTH(CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp)) ;;
+    drill_fields: []
+  }
+
+  dimension: is_latest_date{
+    hidden: yes
+    type: yesno
+    sql: DAY_OF_WEEK(DATE(${date_date})) = DAY_OF_WEEK(DATE_ADD('day',-1,CURRENT_DATE)) ;;
+  }
 
 #     parameter: timeframe {
 #       default_value: "Daily"
@@ -155,6 +178,13 @@ view: dt_rawdata_summary_combined {
       type: number
       sql: ${TABLE}.placementid ;;
     }
+
+  dimension: creative_id {
+    view_label: "Identifiers"
+    label: "Creative Id"
+    type: number
+    sql: ${TABLE}.creative_id ;;
+  }
 
     dimension: country {
       view_label:"Targeting"
@@ -513,28 +543,6 @@ view: dt_rawdata_summary_combined {
       sql: ${TABLE}.day_ts ;;
     }
 
-    dimension_group: date {
-      view_label:"General"
-      #label: "Date"
-      type: time
-      timeframes: [date,day_of_week,week_of_year,week,month_name,month ]
-      sql: CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp) ;;
-    }
-
-    dimension: date_day_of_month {
-      view_label:"General"
-      group_label: "Date Date"
-      label: "Day of Month"
-      type: number
-      sql: DAY_OF_MONTH(CAST(CONCAT(substr(CAST(${TABLE}.day_ts as varchar), 1, 4),'-',substr(CAST(${TABLE}.day_ts as varchar), 5, 2),'-',substr(CAST(${TABLE}.day_ts as varchar), 7, 2)) As timestamp)) ;;
-      drill_fields: []
-    }
-
-    dimension: is_latest_date{
-      hidden: yes
-      type: yesno
-      sql: DAY_OF_WEEK(DATE(${date_date})) = DAY_OF_WEEK(DATE_ADD('day',-1,CURRENT_DATE)) ;;
-    }
 
 
     dimension: hour_ts {
@@ -700,6 +708,22 @@ view: dt_rawdata_summary_combined {
         icon_url: "/images/qr-graph-line@2x.png"
       }
     }
+
+  dimension: opportunities {
+    hidden: yes
+    type: number
+    sql:  ${TABLE}.opportunities ;;
+  }
+
+  measure: total_opportunities {
+    hidden: yes
+    view_label: "Amounts"
+    label:  "Vast Opportunities"
+    type: sum
+    sql: ${opportunities} ;;
+    drill_fields: [detail*,total_opportunities]
+
+  }
     measure: Render_Rate {
       view_label: "Calculated Measures"
       label:  "Render Rate"
